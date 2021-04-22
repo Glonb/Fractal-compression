@@ -39,8 +39,8 @@ public class originalDecode {
 				String []parse = (out.elementAt(i)).split("\t");
 				int j = Integer.parseInt(parse[1]);
 				int k = Integer.parseInt(parse[2]);
-				double scalefactor = Double.parseDouble(parse[3]);
-				double offset = Double.parseDouble(parse[4]);
+				int scalefactor = Integer.parseInt(parse[3]);
+				int offset = Integer.parseInt(parse[4]);
 
 				BufferedImage domainImage = getDomainBlock(DomainArea, domainR, step, j);
 				BufferedImage transDomain = selectAffineTrans(compressDomain(domainImage), k);
@@ -57,7 +57,7 @@ public class originalDecode {
 				}
 			}
 
-			DomainArea = modifyGrayValue(RangeArea, 1.0, 0.0);
+			DomainArea = modifyGrayValue(RangeArea, 1, 0);
 		}
 		long endTime = System.currentTimeMillis();
 		writeImageFile(RangeArea, "outcome");
@@ -126,7 +126,7 @@ public class originalDecode {
 	}
 
 	//修改图像块的灰度值
-	public static BufferedImage modifyGrayValue(BufferedImage image, Double scalefactor, Double offset) {
+	public static BufferedImage modifyGrayValue(BufferedImage image, int scalefactor, int offset) {
 		double value;
 		int height = image.getHeight();
 		int width = image.getWidth();
@@ -290,16 +290,16 @@ public class originalDecode {
 		return symmetryImage;
 	}
 
-	//计算比例因子
-	public static double getScalefactor(BufferedImage Range, BufferedImage Domain){
-		double s;
-		double totalR = 0, totalD = 0, totalD2 = 0;
-		double upfirst = 0;
+	// 计算比例因子
+	public static int getScalefactor(BufferedImage Range, BufferedImage Domain){
+		float s;
+		float totalR = 0f, totalD = 0f, totalD2 = 0f;
+		float upfirst = 0f;
 		int width = Range.getWidth();
 		int height = Range.getHeight();
 		int N = width * height;
-		int [][]range = getGrayValue(Range);
-		int [][]domain = getGrayValue(Domain);
+		int[][] range = getGrayValue(Range);
+		int[][] domain = getGrayValue(Domain);
 
 		for(int i = 0; i < height; i++){
 			for(int j = 0; j < width; j++){
@@ -308,23 +308,22 @@ public class originalDecode {
 				totalD2 += domain[i][j] * domain[i][j];
 				upfirst += range[i][j] * domain[i][j];
 			}
-		}	
+		}
 
 		s = (N * upfirst - totalR * totalD) / (N * totalD2 - totalD * totalD);
-		return s;
-
+		return Math.round(s);
 	}
 
-	//计算灰度偏移量
-	public static double getGrayscaleoffset(BufferedImage Range, BufferedImage Domain){
-		double grayoffset;
+	// 计算灰度偏移量
+	public static int getGrayscaleoffset(BufferedImage Range, BufferedImage Domain){
+		float grayoffset;
 		int width = Range.getWidth();
 		int height = Range.getHeight();
 		int N = width * height;
-		int first = 0, second = 0;
+		float first = 0f, second = 0f;
 
-		int [][]range = getGrayValue(Range);
-		int [][]domain = getGrayValue(Domain);
+		int[][] range = getGrayValue(Range);
+		int[][] domain = getGrayValue(Domain);
 
 		for(int i = 0; i < height; i++){
 			for(int j = 0; j < width; j++){
@@ -333,13 +332,13 @@ public class originalDecode {
 			}
 		}
 
-		grayoffset = (first / N) - (second / N)* getScalefactor(Range,Domain);
-		return grayoffset;
+		grayoffset = (first / N )- (second / N) * getScalefactor(Range,Domain);
+		return Math.round(grayoffset);
 	}
 
 	//计算误差
-	public static double getMeanSquareError(BufferedImage originalImage, BufferedImage decodeImage){
-		double e = 0.0;
+	public static float getMeanSquareError(BufferedImage originalImage, BufferedImage decodeImage){
+		float e = 0f;
 		int width = originalImage.getWidth();
 		int height = originalImage.getHeight();
 		int N = width * height;
@@ -358,7 +357,7 @@ public class originalDecode {
 	//计算峰值信噪比PSNR
 	public static double getPSNR(BufferedImage originalImage, BufferedImage decodeImage){
 
-		double mse = getMeanSquareError(originalImage, decodeImage);
+		float mse = getMeanSquareError(originalImage, decodeImage);
 		return 10 * Math.log10((65025 / mse));
 	}
 
