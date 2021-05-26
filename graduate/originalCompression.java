@@ -20,7 +20,6 @@ public class originalCompression {
 
 		int rangeR = 8;
 		int domainR = 2 * rangeR;
-		int step = 8;
 		long startTime = System.currentTimeMillis();
 		//读取测试图像
 		File file = new File("./graduate/lena_256.bmp");
@@ -31,13 +30,13 @@ public class originalCompression {
 		//创建分形编码文件
 		File out_file = new File("./graduate/encode.txt");
 		BufferedWriter out_txt = new BufferedWriter(new FileWriter(out_file)); 
-		out_txt.write(height + "\t" + width + "\t" + rangeR + "\t" + domainR + "\t" + step + "\n");
+		out_txt.write(height + "\t" + width + "\t" + rangeR + "\t" + domainR + "\t" + rangeR + "\n");
 		
 		// 划分Range块
 		cutRangeBlock(test_image, rangeR);
 
 		// 划分Domain块并压缩
-		cutDomainBlock(test_image, domainR, step);
+		cutDomainBlock(test_image, domainR, rangeR);
 
 		// 对Domain块处理获得Tn(Dj);
 		getTnDomain("./graduate/Domain");

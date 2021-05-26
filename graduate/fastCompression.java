@@ -46,7 +46,7 @@ public class fastCompression {
 
         // 构建索引树
         HashMap<Integer, ArrayList<Integer>> map = new HashMap<>();
-        for (int i = 0; i <= 50; i++) {
+        for (int i = 0; i <= 100; i++) {
             ArrayList<Integer> ints = new ArrayList<>();
             ints.add(-1);
             map.put(i,ints);
@@ -57,14 +57,14 @@ public class fastCompression {
             BufferedImage domainImage = readImageFile(domainFile);
             double[][] dct = performDCT(Objects.requireNonNull(domainImage));
 
-            int val = (int) (100 * dct[0][1]);
+            int val = (int) (100 * dct[1][0]);
             ArrayList<Integer> integers = map.get(val);
             integers.add(j);
             map.replace(val, integers);
         }
 
         HashMap<Integer, ArrayList<Integer>> map1 = new HashMap<>();
-        for (int i = 0; i <= 50; i++) {
+        for (int i = 0; i <= 100; i++) {
             ArrayList<Integer> ints = new ArrayList<>();
             ints.add(-1);
             map1.put(i,ints);
@@ -75,7 +75,7 @@ public class fastCompression {
             BufferedImage domainImage = readImageFile(domainFile);
             double[][] dct = performDCT(Objects.requireNonNull(domainImage));
 
-            int val = (int) (100 * dct[0][1]);
+            int val = (int) (100 * dct[1][0]);
             ArrayList<Integer> integers = map1.get(val);
             integers.add(j);
             map1.replace(val, integers);
@@ -87,7 +87,7 @@ public class fastCompression {
             File rangeFile = new File("./graduate/Range/" + i + ".bmp");
             BufferedImage rangeImage = readImageFile(rangeFile);
             double[][] dct = performDCT(Objects.requireNonNull(rangeImage));
-            int val = (int) (100 * dct[0][1]);
+            int val = (int) (100 * dct[1][0]);
 
             ArrayList<Integer> integers = map.get(val);
             Iterator<Integer> iterator = integers.iterator();
@@ -109,7 +109,6 @@ public class fastCompression {
                         targetTransform = j;
                     }
                 }
-
             }
 
             while (iterator1.hasNext()){
@@ -124,13 +123,12 @@ public class fastCompression {
                         targetTransform = j;
                     }
                 }
-
             }
 
             File targetDomainFile = new File("./graduate/TnDomain/" + targetTransform + "/" + targetDomain + ".bmp");
             BufferedImage targetDomainImage = readImageFile(targetDomainFile);
-            double scalefactor = getScalefactor(rangeImage, targetDomainImage);
-            double offset = getGrayscaleoffset(rangeImage, targetDomainImage);
+            int scalefactor = getScalefactor(rangeImage, targetDomainImage);
+            int offset = getGrayscaleoffset(rangeImage, targetDomainImage);
             String outcome = "i = " + i + ", j = " + targetDomain + ", k = " + targetTransform  + ", s = " + scalefactor + ", offset = " + offset;
             System.out.println(outcome);
             out_txt.write(i + "\t" + targetDomain + "\t" + targetTransform + "\t" + scalefactor + "\t" + offset + "\n");
@@ -157,10 +155,10 @@ public class fastCompression {
     }
 
     // 获取图像每个像素灰度值
-    public static double[][] getGrayValue(BufferedImage image) {
+    public static int[][] getGrayValue(BufferedImage image) {
         int width = image.getWidth();
         int height = image.getHeight();
-        double[][] array = new double[height][width];
+        int[][] array = new int[height][width];
         WritableRaster raster = image.getRaster();
         for (int i = 0; i < height; i++) {
             for (int j = 0; j < width; j++) {
@@ -282,13 +280,13 @@ public class fastCompression {
     public static BufferedImage compressDomain(BufferedImage image) {
         int width = image.getWidth() / 2;
         int height = image.getHeight() / 2;
-        double [][]array = getGrayValue(image);
+        int[][] array = getGrayValue(image);
         BufferedImage compressedImage = new BufferedImage(width, height, BufferedImage.TYPE_BYTE_GRAY);
         WritableRaster raster = compressedImage.getRaster();
 
         for (int i = 0; i < height; i++) {
             for (int j = 0; j < width; j++) {
-                double Sample = (array[2 * i][2 * j] + array[2 * i + 1][2 * j] + array[2 * i][2 * j + 1] + array[2 * i + 1][2 * j + 1]) / 4;
+                double Sample = (array[2 * i][2 * j] + array[2 * i + 1][2 * j] + array[2 * i][2 * j + 1] + array[2 * i + 1][2 * j + 1]) / 4.0;
                 raster.setSample(i, j, 0, Sample);
             }
         }
@@ -299,7 +297,7 @@ public class fastCompression {
     public static BufferedImage rotateImage(BufferedImage image, int degree) {
         int width = image.getWidth();
         int height = image.getHeight();
-        double [][]array = getGrayValue(image);
+        int[][] array = getGrayValue(image);
         BufferedImage rotatedImage = new BufferedImage(width, height, BufferedImage.TYPE_BYTE_GRAY);
         WritableRaster raster =rotatedImage.getRaster();
 
@@ -341,7 +339,7 @@ public class fastCompression {
         width = image.getWidth();
         int height;
         height = image.getHeight();
-        double[][] array = getGrayValue(image);
+        int[][] array = getGrayValue(image);
         BufferedImage symmetryImage = new BufferedImage(width, height, BufferedImage.TYPE_BYTE_GRAY);
         WritableRaster raster =symmetryImage.getRaster();
 
@@ -383,15 +381,15 @@ public class fastCompression {
     }
 
     // 计算比例因子
-    public static double getScalefactor(BufferedImage Range, BufferedImage Domain){
-        double s;
-        double totalR = 0, totalD = 0, totalD2 = 0;
-        double upfirst = 0;
+    public static int getScalefactor(BufferedImage Range, BufferedImage Domain){
+        float s;
+        float totalR = 0, totalD = 0, totalD2 = 0;
+        float upfirst = 0;
         int width = Range.getWidth();
         int height = Range.getHeight();
         int N = width * height;
-        double [][]range = getGrayValue(Range);
-        double [][]domain = getGrayValue(Domain);
+        int[][] range = getGrayValue(Range);
+        int[][] domain = getGrayValue(Domain);
 
         for(int i = 0; i < height; i++){
             for(int j = 0; j < width; j++){
@@ -403,19 +401,19 @@ public class fastCompression {
         }
 
         s = (N * upfirst - totalR * totalD) / (N * totalD2 - totalD * totalD);
-        return s;
+        return Math.round(s);
     }
 
     // 计算灰度偏移量
-    public static double getGrayscaleoffset(BufferedImage Range, BufferedImage Domain){
-        double grayoffset;
+    public static int getGrayscaleoffset(BufferedImage Range, BufferedImage Domain){
+        float grayoffset;
         int width = Range.getWidth();
         int height = Range.getHeight();
         int N = width * height;
-        double first = 0, second = 0;
+        float first = 0, second = 0;
 
-        double [][]range = getGrayValue(Range);
-        double [][]domain = getGrayValue(Domain);
+        int[][] range = getGrayValue(Range);
+        int[][] domain = getGrayValue(Domain);
 
         for(int i = 0; i < height; i++){
             for(int j = 0; j < width; j++){
@@ -425,20 +423,20 @@ public class fastCompression {
         }
 
         grayoffset = (first / N )- (second / N) * getScalefactor(Range,Domain);
-        return grayoffset;
+        return Math.round(grayoffset);
     }
 
     // 计算误差
     public static double getError(BufferedImage Range, BufferedImage Domain){
-        double e = 0.0;
+        double e = 0;
         int width = Range.getWidth();
         int height = Range.getHeight();
         int N = width * height;
-        double [][]range = getGrayValue(Range);
-        double [][]domain = getGrayValue(Domain);
+        int[][] range = getGrayValue(Range);
+        int[][] domain = getGrayValue(Domain);
 
-        double s = getScalefactor(Range, Domain);
-        double o = getGrayscaleoffset(Range, Domain);
+        int s = getScalefactor(Range, Domain);
+        int o = getGrayscaleoffset(Range, Domain);
 
         for(int i = 0; i < height; i ++){
             for(int j = 0; j < width; j++){
@@ -451,14 +449,14 @@ public class fastCompression {
     }
 
     // DCT变换中间计算
-    public static double tempDct(double[][] gray, double u, double v){
+    public static double tempDct(int[][] gray, double u, double v){
         int height = gray.length;
         int width = gray[0].length;
         double res = 0;
 
         for(int i = 0; i < height; i ++){
             for(int j = 0; j < width; j++){
-                res += gray[i][j] * Math.cos((2*i+1) * Math.PI * u / (2*width)) * Math.cos((2*j+1) * Math.PI * v / (2*width));
+                res += (gray[i][j] - 128) * Math.cos((2*i+1) * Math.PI * u / (2*width)) * Math.cos((2*j+1) * Math.PI * v / (2*width));
             }
         }
         return res;
@@ -469,11 +467,9 @@ public class fastCompression {
         int width = image.getWidth();
         int height = image.getHeight();
         double [][]dct = new double[height][width];
-        double [][]gray = getGrayValue(image);
-        double sum;
+        int[][] gray = getGrayValue(image);
+        double sum, cu, cv;
         double dct2d = 0;
-        double cu;
-        double cv;
 
         for(int u = 0; u < height; u++){
             for(int v = 0; v < width; v++){
@@ -501,7 +497,6 @@ public class fastCompression {
                 dct[u][v] = temp.setScale(2, RoundingMode.HALF_UP).doubleValue();
             }
         }
-
         return dct;
     }
 }
